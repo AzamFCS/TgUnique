@@ -10,5 +10,6 @@ namespace TgUnique
         public List<YouTubeAcc> channels { get; set; }
         public int JsonAttempts { get; set; } = 0;
         public int DeletingAttempts { get; set; } = 0;
+        public int VideoAttempts { get; set; } = 0;
     }
 }
