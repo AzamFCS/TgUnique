@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot;
-using TgUnique;
+using TgShared;
 using Telegram.Bot.Types.ReplyMarkups;
 namespace States
 {
@@ -21,6 +21,7 @@ namespace States
                 {
                     new[]
                     {
+                        //показать условия
                         InlineKeyboardButton.WithCallbackData("✅ Принять", "accept"),
                         InlineKeyboardButton.WithCallbackData("❌ Отклонить", "decline")
                     }

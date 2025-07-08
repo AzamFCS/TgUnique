@@ -1,4 +1,4 @@
-﻿namespace TgUnique
+﻿namespace TgShared
 {
     public class AppSettings
     {

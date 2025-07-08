@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using TgUnique;
+using TgShared;
 
 namespace States
 {
@@ -22,12 +22,26 @@ namespace States
                 {
                     session.CurrentState = new Accepted(_settings);
                     // отправляем данные пользователя в db/json (userid, время когда он принял)
-                    await ForMenu.ShowMenu(update, session, bot);
+                    try
+                    {
+                        await ForMenu.ShowMenu(update, session, bot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
                 }
                 else if (callbackData == "decline")
                 {
-                    await bot.SendMessage(chatId, "Вы отказались от использования программы.");
-                    session.CurrentState = new AwaitingForAccept(_settings);
+                    try
+                    {
+                        await bot.SendMessage(chatId, "Вы отказались от использования программы.");
+                        session.CurrentState = new AwaitingForAccept(_settings);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
                 }
             }
         }

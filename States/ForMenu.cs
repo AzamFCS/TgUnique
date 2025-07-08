@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot;
-using TgUnique;
+using TgShared;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Text;
 

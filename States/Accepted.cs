@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot;
-using TgUnique;
+using TgShared;
 
 namespace States
 {
@@ -18,22 +18,51 @@ namespace States
             {
                 case "📥 Загрузить JSON":
                     session.CurrentState = new WaitingForJson(_settings);
-                    await bot.SendMessage(message.Chat.Id, "Пожалуйста, отправьте JSON-файл.");
+                    try
+                    {
+                        await bot.SendMessage(message.Chat.Id, "Пожалуйста, отправьте JSON-файл.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
                     break;
                 case "📄 Посмотреть каналы":
-                    await ForMenu.ShowChannels(update,session, bot);
-                    await ForMenu.ShowMenu(update, session, bot);
+                    try
+                    {
+                        await ForMenu.ShowChannels(update, session, bot);
+                        await ForMenu.ShowMenu(update, session, bot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
                     break;
                 case "🎬 Загрузить видео":
                     session.CurrentState = new WaitingForVideo(_settings);
-                    await bot.SendMessage(message.Chat.Id, "Загрузите видео");
+                    try
+                    {
+                        await bot.SendMessage(message.Chat.Id, "Загрузите видео");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
+                    
                     break;
                 case "🗑️ Удалить канал":
                     session.CurrentState = new DeletingAChannel(_settings);
                     break;
                 case "❓ Инфо":
-                    await ForMenu.ShowInfo(update, session, bot);
-                    await ForMenu.ShowMenu(update, session, bot);
+                    try
+                    {
+                        await ForMenu.ShowInfo(update, session, bot);
+                        await ForMenu.ShowMenu(update, session, bot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                    }
                     break;
             }
         }

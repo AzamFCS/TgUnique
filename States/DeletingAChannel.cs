@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
-using TgUnique;
+using TgShared;
 
 namespace States
 {
@@ -15,7 +15,14 @@ namespace States
         public async Task HandleUpdateAsync(Update update, UserSession session, ITelegramBotClient bot)
         {
             await ForMenu.ShowMenu(update, session, bot);
-            bot.SendMessage(update.Message.Chat.Id, "Отправьте номер канала, который вы хотите удалить");
+            try
+            {
+                bot.SendMessage(update.Message.Chat.Id, "Отправьте номер канала, который вы хотите удалить");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+            }
             if (int.TryParse(update.Message.Text,out int res))
             {
                 if (res > 0 && res <= session.channels.Count)
@@ -30,7 +37,7 @@ namespace States
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
                     }
                 }
                 else
@@ -45,17 +52,24 @@ namespace States
         }
         private async Task HandleInvalidUpload(Update update, UserSession session, ITelegramBotClient bot, long chatId)
         {
-            if (session.JsonAttempts == 0)
+            try
             {
-                await bot.SendMessage(chatId, "❌ Введите корректное число.");
-                session.JsonAttempts++;
+                if (session.JsonAttempts == 0)
+                {
+                    await bot.SendMessage(chatId, "❌ Введите корректное число.");
+                    session.JsonAttempts++;
+                }
+                else
+                {
+                    await bot.SendMessage(chatId, "📥 Вы ввели некорректные данные. Возвращаем вас в меню.");
+                    session.JsonAttempts = 0;
+                    session.CurrentState = new Accepted(_settings);
+                    await ForMenu.ShowMenu(update, session, bot);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await bot.SendMessage(chatId, "📥 Вы ввели некорректные данные. Возвращаем вас в меню.");
-                session.JsonAttempts = 0;
-                session.CurrentState = new Accepted(_settings);
-                await ForMenu.ShowMenu(update, session, bot);
+                Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
             }
         }
     }

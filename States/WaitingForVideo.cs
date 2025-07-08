@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using TgUnique;
+using TgShared;
 
 namespace States
 {
@@ -16,37 +16,44 @@ namespace States
 
         public async Task HandleUpdateAsync(Update update, UserSession session, ITelegramBotClient bot)
         {
-            var chatId = update.Message.Chat.Id;
-
-            if (session.channels == null || session.channels.Count == 0)
+            try
             {
-                await bot.SendMessage(chatId, "❗ Сначала добавьте каналы в базу.");
-                session.CurrentState = new Accepted(_settings);
-                await ForMenu.ShowMenu(update, session, bot);
-                return;
-            }
+                var chatId = update.Message.Chat.Id;
 
-            var message = update.Message;
-
-            if (message.Type == MessageType.Video)
-            {
-                var video = message.Video;
-                await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
-                //await ProcessVideo(video.FileId, video.FileName ?? "video.mp4", session, bot, chatId);
-                return;
-            }
-            if (message.Type == MessageType.Document && message.Document != null)
-            {
-                var doc = message.Document;
-                if (IsVideoFile(doc.FileName))
+                if (session.channels == null || session.channels.Count == 0)
                 {
-                    await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
-                    //await ProcessVideo(doc.FileId, doc.FileName, session, bot, chatId);
+                    await bot.SendMessage(chatId, "❗ Сначала добавьте каналы в базу.");
+                    session.CurrentState = new Accepted(_settings);
+                    await ForMenu.ShowMenu(update, session, bot);
                     return;
                 }
-            }
 
-            await HandleInvalidUpload(update, session, bot, chatId);
+                var message = update.Message;
+
+                if (message.Type == MessageType.Video)
+                {
+                    var video = message.Video;
+                    await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
+                    //await ProcessVideo(video.FileId, video.FileName ?? "video.mp4", session, bot, chatId);
+                    return;
+                }
+                if (message.Type == MessageType.Document && message.Document != null)
+                {
+                    var doc = message.Document;
+                    if (IsVideoFile(doc.FileName))
+                    {
+                        await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
+                        //await ProcessVideo(doc.FileId, doc.FileName, session, bot, chatId);
+                        return;
+                    }
+                }
+
+                await HandleInvalidUpload(update, session, bot, chatId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+            }
         }
 
         //private async Task ProcessVideo(string fileId, string fileName, UserSession session, ITelegramBotClient bot, long chatId)

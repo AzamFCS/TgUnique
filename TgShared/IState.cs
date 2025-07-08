@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot;
 
-namespace TgUnique
+namespace TgShared
 {
     public interface IState
     {

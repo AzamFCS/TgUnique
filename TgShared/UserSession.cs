@@ -1,5 +1,5 @@
 ﻿
-namespace TgUnique
+namespace TgShared
 {
     public class UserSession
     {
@@ -11,5 +11,6 @@ namespace TgUnique
         public int JsonAttempts { get; set; } = 0;
         public int DeletingAttempts { get; set; } = 0;
         public int VideoAttempts { get; set; } = 0;
+        public long ChatId { get; set; }
     }
 }

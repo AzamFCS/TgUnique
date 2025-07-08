@@ -2,7 +2,7 @@
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Newtonsoft.Json;
-using TgUnique;
+using TgShared;
 
 namespace States
 {
@@ -16,44 +16,52 @@ namespace States
 
         public async Task HandleUpdateAsync(Update update, UserSession session, ITelegramBotClient bot)
         {
-            if (update?.Message == null)
-                return;
-
-            var chatId = update.Message.Chat.Id;
-
-            if (update.Message.Type == MessageType.Document && update.Message.Document != null)
+            try
             {
-                var document = update.Message.Document;
+                if (update?.Message == null)
+                    return;
 
-                if (document.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                var chatId = update.Message.Chat.Id;
+
+                if (update.Message.Type == MessageType.Document && update.Message.Document != null)
                 {
-                    try
+                    var document = update.Message.Document;
+
+                    if (document.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
                     {
-                        var file = await bot.GetFile(document.FileId);
-                        using var stream = new MemoryStream();
-                        await bot.DownloadFile(file.FilePath, stream);
-                        stream.Seek(0, SeekOrigin.Begin);
-
-                        using var reader = new StreamReader(stream);
-                        var jsonContent = await reader.ReadToEndAsync();
-
-                        var accs = JsonConvert.DeserializeObject<List<YouTubeAcc>>(jsonContent);
-
-                        if (accs != null)
+                        try
                         {
-                            await bot.SendMessage(chatId, $"✅ Принято {accs.Count} аккаунтов");
-                            session.channels = accs;
-                            session.JsonAttempts = 0;
-                            await ForMenu.ShowMenu(update, session, bot);
-                            session.CurrentState = new Accepted(_settings);
-                            return;
-                        }
+                            var file = await bot.GetFile(document.FileId);
+                            using var stream = new MemoryStream();
+                            await bot.DownloadFile(file.FilePath, stream);
+                            stream.Seek(0, SeekOrigin.Begin);
 
-                        await bot.SendMessage(chatId, "❌ Не удалось распознать JSON-файл.");
+                            using var reader = new StreamReader(stream);
+                            var jsonContent = await reader.ReadToEndAsync();
+
+                            var accs = JsonConvert.DeserializeObject<List<YouTubeAcc>>(jsonContent);
+
+                            if (accs != null)
+                            {
+                                await bot.SendMessage(chatId, $"✅ Принято {accs.Count} аккаунтов");
+                                session.channels = accs;
+                                session.JsonAttempts = 0;
+                                await ForMenu.ShowMenu(update, session, bot);
+                                session.CurrentState = new Accepted(_settings);
+                                return;
+                            }
+
+                            await bot.SendMessage(chatId, "❌ Не удалось распознать JSON-файл.");
+                        }
+                        catch (Exception ex)
+                        {
+                            await bot.SendMessage(chatId, "❌ Ошибка при обработке JSON. Попробуйте заново.");
+                            Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                        }
                     }
-                    catch
+                    else
                     {
-                        await bot.SendMessage(chatId, "❌ Ошибка при обработке JSON. Попробуйте заново.");
+                        await HandleInvalidUpload(update, session, bot, chatId);
                     }
                 }
                 else
@@ -61,9 +69,9 @@ namespace States
                     await HandleInvalidUpload(update, session, bot, chatId);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                await HandleInvalidUpload(update, session, bot, chatId);
+                Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
             }
         }
 

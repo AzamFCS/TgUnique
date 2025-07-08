@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-namespace TgUnique
+namespace TgShared
 {
     public class YouTubeAcc
     {
