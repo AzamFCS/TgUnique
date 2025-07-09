@@ -24,7 +24,7 @@ namespace States
                 {
                     await bot.SendMessage(chatId, "❗ Сначала добавьте каналы в базу.");
                     session.CurrentState = new Accepted(_settings);
-                    await ForMenu.ShowMenu(update, session, bot);
+                    await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
                     return;
                 }
 
@@ -86,7 +86,7 @@ namespace States
                 await bot.SendMessage(chatId, "⚠️ Не удалось определить видео. Вы возвращены в меню.");
                 session.VideoAttempts = 0;
                 session.CurrentState = new Accepted(_settings);
-                await ForMenu.ShowMenu(update, session, bot);
+                await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
             }
         }
     }

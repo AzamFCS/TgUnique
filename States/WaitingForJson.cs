@@ -46,7 +46,7 @@ namespace States
                                 await bot.SendMessage(chatId, $"✅ Принято {accs.Count} аккаунтов");
                                 session.channels = accs;
                                 session.JsonAttempts = 0;
-                                await ForMenu.ShowMenu(update, session, bot);
+                                await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
                                 session.CurrentState = new Accepted(_settings);
                                 return;
                             }
@@ -87,7 +87,7 @@ namespace States
                 await bot.SendMessage(chatId, "📥 Не является JSON файлом. Возвращаем вас в меню.");
                 session.JsonAttempts = 0;
                 session.CurrentState = new Accepted(_settings);
-                await ForMenu.ShowMenu(update, session, bot);
+                await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
             }
         }
     }

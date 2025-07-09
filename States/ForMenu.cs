@@ -8,30 +8,30 @@ namespace States
 {
     public class ForMenu
     {
-        public static async Task ShowMenu(Update update, UserSession session, ITelegramBotClient bot)
+        public static async Task ShowMenuManually(ChatId chatId, UserSession session, ITelegramBotClient bot)
         {
-            var keyboard = new ReplyKeyboardMarkup(new[]
+            var keyboard = new Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup(
+                new[]
+                {
+                new[] { new KeyboardButton("📥 Загрузить JSON"), new KeyboardButton("📄 Посмотреть каналы") },
+                new[] { new KeyboardButton("🎬 Загрузить видео"), new KeyboardButton("🗑️ Удалить канал") },
+                new[] { new KeyboardButton("❓ Инфо") }
+                })
             {
-                new KeyboardButton[] { "📥 Загрузить JSON", "📄 Посмотреть каналы" },
-                new KeyboardButton[] { "🎬 Загрузить видео", "🗑️ Удалить канал" },
-                new KeyboardButton[] { "❓ Инфо" }
-            })
-            {
-                ResizeKeyboard = true 
+                ResizeKeyboard = true
             };
 
-            await bot.SendMessage(
-                chatId: update.Message.Chat.Id,
-                text: "Выберите действие из меню:",
-                replyMarkup: keyboard
-            );
-
+            await bot.SendMessage(chatId, "Выберите действие:", replyMarkup: keyboard);
         }
-        public static async Task ShowChannels(Update update, UserSession session, ITelegramBotClient bot)
+        public static async Task ShowChannels(ChatId chatid, UserSession session, ITelegramBotClient bot)
         {
             var sb = new StringBuilder();
             sb.AppendLine("📺 <b>Список каналов:</b>\n");
-
+            if (session.channels == null || session.channels.Count == 0)
+            {
+                await bot.SendMessage(chatid, "Сначала добавьте каналы в базу");
+                return;
+            }
             for (int i = 0; i < session.channels.Count; i++)
             {
                 var acc = session.channels[i];
@@ -45,7 +45,7 @@ namespace States
             }
 
             await bot.SendMessage(
-                chatId: update.Message.Chat.Id,
+                chatId: chatid,
                 text: sb.ToString(),
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.Html
             );

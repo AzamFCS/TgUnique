@@ -14,7 +14,7 @@ namespace States
         }
         public async Task HandleUpdateAsync(Update update, UserSession session, ITelegramBotClient bot)
         {
-            await ForMenu.ShowMenu(update, session, bot);
+            await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
             try
             {
                 bot.SendMessage(update.Message.Chat.Id, "Отправьте номер канала, который вы хотите удалить");
@@ -32,12 +32,12 @@ namespace States
                         var removed = session.channels[res - 1];
                         session.channels.RemoveAt(res - 1);
                         bot.SendMessage(update.Message.Chat.Id, $"✅ Удалили аккуант {removed.ChannelName}");
-                        ForMenu.ShowMenu(update, session, bot);
+                        await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
                         session.CurrentState = new Accepted(_settings);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
+                        Console.WriteLine($"{session?.UserId ?? 0} ошибка: {ex.Message}");
                     }
                 }
                 else
@@ -64,7 +64,7 @@ namespace States
                     await bot.SendMessage(chatId, "📥 Вы ввели некорректные данные. Возвращаем вас в меню.");
                     session.JsonAttempts = 0;
                     session.CurrentState = new Accepted(_settings);
-                    await ForMenu.ShowMenu(update, session, bot);
+                    await ForMenu.ShowMenuManually(update.Message.Chat.Id, session, bot);
                 }
             }
             catch (Exception ex)
