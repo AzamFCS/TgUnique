@@ -16,26 +16,33 @@ namespace States
             var message = update.Message;
             if (message == null || message.Text == null)
                 return;
-            if (message.Text == "/start")
+            if (_settings.AllowedUserIDs.Contains(update.Message.From.Id.ToString()) || session.IsTrial)
             {
-                //добавить проверку на то, что у пользователя вообще есть доступ (лист с userId). Если он есть и пользователь нажал принять, то даем ему пробный период
-                var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                if (message.Text == "/start")
                 {
+                    var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                    {
                     new[]
                     {
-                        //показать условия
                         InlineKeyboardButton.WithCallbackData("✅ Принять", "accept"),
                         InlineKeyboardButton.WithCallbackData("❌ Отклонить", "decline")
                     }
                 });
-                await bot.SendMessage(
-                    chatId: message.Chat.Id,
-                    text: ShowConditions(), 
-                    replyMarkup:inlineKeyboard,
-                    parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
-                );
-                session.CurrentState = new GettingAccept(_settings);
+                    await bot.SendMessage(
+                        chatId: message.Chat.Id,
+                        text: ShowConditions(),
+                        replyMarkup: inlineKeyboard,
+                        parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                    );
+                    session.CurrentState = new GettingAccept(_settings);
+                }
             }
+            else
+            {
+                await bot.SendMessage(update.Message.Chat.Id, "❌ У вас нет доступа, обратитесь к админу");
+                session.CurrentState = new AwaitingForAccept(_settings);
+            }
+            
 
         }
         private string ShowConditions()

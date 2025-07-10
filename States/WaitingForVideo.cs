@@ -2,12 +2,11 @@
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TgShared;
-
 namespace States
 {
     public class WaitingForVideo : IState
     {
-        private readonly AppSettings _settings;
+        public readonly AppSettings _settings;
 
         public WaitingForVideo(AppSettings settings)
         {
@@ -32,9 +31,9 @@ namespace States
 
                 if (message.Type == MessageType.Video)
                 {
-                    var video = message.Video;
-                    await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
-                    //await ProcessVideo(video.FileId, video.FileName ?? "video.mp4", session, bot, chatId);
+                    await Unique.ProcessAndUploadAsync(message, session, bot, _settings);
+                    session.CurrentState = new Accepted(_settings);
+                    await ForMenu.ShowMenuManually(chatId, session, bot);
                     return;
                 }
                 if (message.Type == MessageType.Document && message.Document != null)
@@ -42,8 +41,9 @@ namespace States
                     var doc = message.Document;
                     if (IsVideoFile(doc.FileName))
                     {
-                        await bot.SendMessage(update.Message.Chat.Id, "Пока эта логика не завершена");
-                        //await ProcessVideo(doc.FileId, doc.FileName, session, bot, chatId);
+                        await Unique.ProcessAndUploadAsync(message, session, bot, _settings); //вот здесь ошибка вылетает
+                        session.CurrentState = new Accepted(_settings);
+                        await ForMenu.ShowMenuManually(chatId, session, bot);
                         return;
                     }
                 }
@@ -55,19 +55,6 @@ namespace States
                 Console.WriteLine($"{session.UserId} ошибка: {ex.Message}");
             }
         }
-
-        //private async Task ProcessVideo(string fileId, string fileName, UserSession session, ITelegramBotClient bot, long chatId)
-        //{
-        //    session.VideoAttempts = 0;
-
-        //    // Здесь — твоя логика загрузки видео на каналы
-        //    await bot.SendMessage(chatId, $"✅ Получено видео: {fileName}\n🔄 Идёт загрузка на каналы...");
-
-        //    // TODO: реализовать залив на каналы
-        //    session.CurrentState = new Accepted(_settings);
-        //    await ForMenu.ShowMenu(update, session, bot);
-        //}
-
         private bool IsVideoFile(string fileName)
         {
             var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".webm" };

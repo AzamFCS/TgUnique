@@ -12,5 +12,6 @@ namespace TgShared
         public int DeletingAttempts { get; set; } = 0;
         public int VideoAttempts { get; set; } = 0;
         public long ChatId { get; set; }
+        public string? PendingTitle { get; set; }
     }
 }

@@ -21,28 +21,19 @@ namespace States
                 var chatId = update.CallbackQuery.Message.Chat.Id;
                 if (callbackData == "accept")
                 {
-                    session.CurrentState = new Accepted(_settings);
-
-                    try
-                    {
-                        await bot.SendMessage(chatId, "Вы приняли условия. Добро пожаловать! Вот ваше меню:");
-                        var keyboard = new Telegram.Bot.Types.ReplyMarkups.ReplyKeyboardMarkup(
+                    session.CurrentState = new WaitingForPhone(_settings);
+                    await bot.SendMessage(
+                        chatId: update.CallbackQuery.From.Id,
+                        text: "📱 Для соблюдения прозрачности при принятии условий, в базу данных сохраняется ваш Telegram userId и дата/время согласия,  а также номер телефона, на который привязан ваш аккауант. \n Нажимая кнопку \"Поделиться номером\", вы еще раз подтверждаете, что согласны с указанными выше условиями, а также даете согласие на обработку ваших персональных данных (номер телефона, UserId) для удостоверения вашей личности",
+                        replyMarkup: new ReplyKeyboardMarkup(
                             new[]
-                {
-                new[] { new KeyboardButton("📥 Загрузить JSON"), new KeyboardButton("📄 Посмотреть каналы") },
-                new[] { new KeyboardButton("🎬 Загрузить видео"), new KeyboardButton("🗑️ Удалить канал") },
-                new[] { new KeyboardButton("❓ Инфо") }
-                })
+                            {
+                                KeyboardButton.WithRequestContact("📲 Поделиться номером")
+                            })
                         {
-                            ResizeKeyboard = true
-                        };
-
-                        await bot.SendMessage(chatId, "Выберите действие:", replyMarkup: keyboard);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"{session?.UserId ?? 0} ошибка: {ex.Message}");
-                    }
+                            ResizeKeyboard = true,
+                            OneTimeKeyboard = true
+                        });
                 }
 
                 else if (callbackData == "decline")

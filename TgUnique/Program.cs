@@ -21,7 +21,7 @@ class Program
         }
 
         var settings = config.GetSection("AppSettings").Get<AppSettings>();
-
+        Database.Initialize(settings.DatabasePath);
         var botClient = new TelegramBotClient(settings.BotToken);
 
         var cts = new CancellationTokenSource();
@@ -69,7 +69,6 @@ class BotService
                 ChatId = chatId.Value,
                 CurrentState = new AwaitingForAccept(_settings),
             });
-
             await session.CurrentState.HandleUpdateAsync(update, session, bot);
         }
         catch (Exception ex)
