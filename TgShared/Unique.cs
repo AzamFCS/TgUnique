@@ -13,8 +13,108 @@ namespace TgShared
 {
     public static class Unique
     {
+        //public static async Task ProcessAndUploadAsync(Message message, UserSession session, ITelegramBotClient bot, AppSettings settings)
+        //{
+        //    string ffmpegPath = settings.FfmpegPath;
+        //    string ffprobePath = settings.FfprobePath;
+        //    var uploadResults = new List<string>();
+        //    string fileId = message.Video?.FileId ?? message.Document?.FileId;
+
+        //    if (fileId == null)
+        //    {
+        //        await bot.SendMessage(message.Chat.Id, "❌ Не удалось получить файл. Убедитесь, что вы отправили видео или документ.");
+        //        return;
+        //    }
+
+        //    var file = await bot.GetFile(fileId);
+
+        //    string inputPath = $"temp_{DateTime.Now:yyyyMMdd_HHmmss}.mp4";
+
+        //    using (var fileStream = new FileStream(inputPath, FileMode.Create))
+        //    {
+        //        await bot.DownloadFile(file.FilePath, fileStream);
+        //    }
+
+        //    double baseFps;
+        //    await bot.SendMessage(message.Chat.Id, "⌛ Начинаем процесс уникализации...");
+        //    try
+        //    {
+        //        baseFps = GetVideoFps(ffprobePath, inputPath);
+        //        await bot.SendMessage(message.Chat.Id, $"🎥 Исходный FPS: {baseFps:F2}");
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        await bot.SendMessage(message.Chat.Id, $"❌ Не удалось определить FPS: {e.Message}");
+        //        File.Delete(inputPath);
+        //        return;
+        //    }
+
+        //    var random = new Random();
+        //    int cnt = 0;
+        //    string outputPath = string.Empty;
+        //    for (int i = 0; i < session.channels.Count(); i++)
+        //    {
+        //        double brightness = Math.Round(random.NextDouble() * 0.2 - 0.1, 2);
+        //        double contrast = Math.Round(1.0 + random.NextDouble() * 0.2 - 0.1, 2);
+        //        double fpsOffset = random.NextDouble() * 4 - 2;
+        //        double newFps = Math.Round(Math.Max(1, baseFps + fpsOffset), 2);
+
+        //        string brightnessStr = brightness.ToString("0.00", CultureInfo.InvariantCulture);
+        //        string contrastStr = contrast.ToString("0.00", CultureInfo.InvariantCulture);
+        //        string fpsStr = newFps.ToString("0.00", CultureInfo.InvariantCulture);
+
+        //        string title = session.PendingTitle;
+        //        string comment = "";
+        //        string author = $"UploaderBot_{random.Next(1000, 9999)}";
+        //        DateTime creationTime = DateTime.Now.AddDays(-random.Next(0, 30));
+        //        string creationTimeIso = creationTime.ToString("yyyy-MM-ddTHH:mm:ss");
+
+        //        string safeTimestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        //        outputPath = $"unique_{i}_{safeTimestamp}.mp4";
+
+        //        string videoFilter = $"eq=brightness={brightnessStr}:contrast={contrastStr},fps={fpsStr}";
+        //        string args = $"-y -i \"{inputPath}\" -vf \"{videoFilter}\" " +
+        //                      $"-metadata title=\"{title}\" -metadata comment=\"{comment}\" " +
+        //                      $"-metadata author=\"{author}\" -metadata creation_time=\"{creationTimeIso}\" " +
+        //                      $"-c:a copy \"{outputPath}\"";
+
+        //        RunFFmpeg(ffmpegPath, args);
+
+        //        if (!File.Exists(outputPath))
+        //        {
+        //            await bot.SendMessage(message.Chat.Id, $"❌ Выходной файл не найден: {outputPath}");
+        //            continue;
+        //        }
+        //        var fileInfo = new FileInfo(outputPath);
+        //        if (fileInfo.Length < 1024 * 50)
+        //        {
+        //            await bot.SendMessage(message.Chat.Id, $"⚠️ Подозрительно маленький файл: {fileInfo.Length / 1024} KB");
+        //            continue;
+        //        }
+
+        //        try
+        //        {
+        //            var YouTubeService = await AuthenticateAsync(session.channels[i]);
+        //            await UploadVideoAsync(YouTubeService, outputPath, title, comment);
+        //            uploadResults.Add($"✔️ {session.channels[i].ChannelName}");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Ошибка загрузки: {ex}");
+        //            uploadResults.Add($"❌ {session.channels[i].ChannelName} — {ex.Message}");
+        //        }
+
+        //    }
+        //    if (File.Exists(Path.Combine("C:\\Users\\Admin\\source\\repos\\TgUnique\\TgUnique\\bin\\Debug\\net8.0",inputPath)))
+        //        File.Delete(Path.Combine("C:\\Users\\Admin\\source\\repos\\TgUnique\\TgUnique\\bin\\Debug\\net8.0", inputPath));
+        //    if (File.Exists(Path.Combine("C:\\Users\\Admin\\source\\repos\\TgUnique\\TgUnique\\bin\\Debug\\net8.0", outputPath)))
+        //        File.Delete(Path.Combine("C:\\Users\\Admin\\source\\repos\\TgUnique\\TgUnique\\bin\\Debug\\net8.0", outputPath));
+        //    await bot.SendMessage(message.Chat.Id, $"✅ Уникализировано и загружено: {cnt} видео.");
+        //    await bot.SendMessage(message.Chat.Id, "📊 Результаты загрузки:\n" + string.Join("\n", uploadResults));
+        //}
         public static async Task ProcessAndUploadAsync(Message message, UserSession session, ITelegramBotClient bot, AppSettings settings)
         {
+            Console.WriteLine(">> ProcessAndUploadAsync запущен");
             string ffmpegPath = settings.FfmpegPath;
             string ffprobePath = settings.FfprobePath;
             var uploadResults = new List<string>();
@@ -22,95 +122,100 @@ namespace TgShared
 
             if (fileId == null)
             {
-                await bot.SendMessage(message.Chat.Id, "❌ Не удалось получить файл. Убедитесь, что вы отправили видео или документ.");
+                await bot.SendMessage(message.Chat.Id, "❌ Не удалось получить файл.");
                 return;
             }
 
+            Console.WriteLine(">> Получаем файл из Telegram...");
             var file = await bot.GetFile(fileId);
+            Console.WriteLine($">> Получен путь файла: {file.FilePath}");
+            string tempDir = Path.GetTempPath();
+            string inputPath = Path.Combine(tempDir, $"input_{Guid.NewGuid()}.mp4");
 
-            string inputPath = $"temp_{DateTime.Now:yyyyMMdd_HHmmss}.mp4";
-
-            using (var fileStream = new FileStream(inputPath, FileMode.Create))
-            {
-                await bot.DownloadFile(file.FilePath, fileStream);
-            }
-
-            double baseFps;
-            await bot.SendMessage(message.Chat.Id, "⌛ Начинаем процесс уникализации...");
             try
             {
-                baseFps = GetVideoFps(ffprobePath, inputPath);
-                await bot.SendMessage(message.Chat.Id, $"🎥 Исходный FPS: {baseFps:F2}");
-            }
-            catch (Exception e)
-            {
-                await bot.SendMessage(message.Chat.Id, $"❌ Не удалось определить FPS: {e.Message}");
-                File.Delete(inputPath);
-                return;
-            }
-
-            var random = new Random();
-            int cnt = 0;
-
-            for (int i = 0; i < session.channels.Count(); i++)
-            {
-                double brightness = Math.Round(random.NextDouble() * 0.2 - 0.1, 2);
-                double contrast = Math.Round(1.0 + random.NextDouble() * 0.2 - 0.1, 2);
-                double fpsOffset = random.NextDouble() * 4 - 2;
-                double newFps = Math.Round(Math.Max(1, baseFps + fpsOffset), 2);
-
-                string brightnessStr = brightness.ToString("0.00", CultureInfo.InvariantCulture);
-                string contrastStr = contrast.ToString("0.00", CultureInfo.InvariantCulture);
-                string fpsStr = newFps.ToString("0.00", CultureInfo.InvariantCulture);
-
-                string title = session.PendingTitle;
-                string comment = "";
-                string author = $"UploaderBot_{random.Next(1000, 9999)}";
-                DateTime creationTime = DateTime.Now.AddDays(-random.Next(0, 30));
-                string creationTimeIso = creationTime.ToString("yyyy-MM-ddTHH:mm:ss");
-
-                string safeTimestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                string outputPath = $"unique_{i}_{safeTimestamp}.mp4";
-
-                string videoFilter = $"eq=brightness={brightnessStr}:contrast={contrastStr},fps={fpsStr}";
-                string args = $"-y -i \"{inputPath}\" -vf \"{videoFilter}\" " +
-                              $"-metadata title=\"{title}\" -metadata comment=\"{comment}\" " +
-                              $"-metadata author=\"{author}\" -metadata creation_time=\"{creationTimeIso}\" " +
-                              $"-c:a copy \"{outputPath}\"";
-
-                RunFFmpeg(ffmpegPath, args);
-
-                if (!File.Exists(outputPath))
+                using (var fileStream = new FileStream(inputPath, FileMode.Create))
                 {
-                    await bot.SendMessage(message.Chat.Id, $"❌ Выходной файл не найден: {outputPath}");
-                    continue;
+                    Console.WriteLine(">> Скачиваем файл...");
+                    await bot.DownloadFile(file.FilePath, fileStream);
                 }
-                var fileInfo = new FileInfo(outputPath);
-                if (fileInfo.Length < 1024 * 50)
-                {
-                    await bot.SendMessage(message.Chat.Id, $"⚠️ Подозрительно маленький файл: {fileInfo.Length / 1024} KB");
-                    continue;
-                }
-                
+                Console.WriteLine(">> Файл скачан и сохранён как: " + inputPath);
+
+
+                double baseFps;
+                await bot.SendMessage(message.Chat.Id, "⌛ Начинаем уникализацию...");
                 try
                 {
-                    var YouTubeService = await AuthenticateAsync(session.channels[i]);
-                    await UploadVideoAsync(YouTubeService, outputPath, title, comment);
-                    uploadResults.Add($"✔️ {session.channels[i].ChannelName}");
+                    baseFps = GetVideoFps(ffprobePath, inputPath);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка загрузки: {ex}");
-                    uploadResults.Add($"❌ {session.channels[i].ChannelName} — {ex.Message}");
+                    await bot.SendMessage(message.Chat.Id, $"❌ Не удалось определить FPS: {ex.Message}");
+                    return;
                 }
 
-            }
-            if (File.Exists(inputPath))
-                File.Delete(inputPath);
+                var random = new Random();
 
-            await bot.SendMessage(message.Chat.Id, $"✅ Уникализировано и загружено: {cnt} видео.");
-            await bot.SendMessage(message.Chat.Id, "📊 Результаты загрузки:\n" + string.Join("\n", uploadResults));
+                for (int i = 0; i < session.channels.Count(); i++)
+                {
+                    string outputPath = Path.Combine(tempDir, $"output_{Guid.NewGuid()}.mp4");
+
+                    try
+                    {
+                        double brightness = Math.Round(random.NextDouble() * 0.2 - 0.1, 2);
+                        double contrast = Math.Round(1.0 + random.NextDouble() * 0.2 - 0.1, 2);
+                        double fpsOffset = random.NextDouble() * 4 - 2;
+                        double newFps = Math.Round(Math.Max(1, baseFps + fpsOffset), 2);
+
+                        string videoFilter = $"eq=brightness={brightness.ToString("0.00", CultureInfo.InvariantCulture)}:contrast={contrast.ToString("0.00", CultureInfo.InvariantCulture)},fps={newFps.ToString("0.00", CultureInfo.InvariantCulture)}";
+
+                        string title = session.PendingTitle;
+                        string author = $"UploaderBot_{random.Next(1000, 9999)}";
+                        string creationTimeIso = DateTime.Now.AddDays(-random.Next(0, 30)).ToString("yyyy-MM-ddTHH:mm:ss");
+
+                        string args = $"-y -i \"{inputPath}\" -vf \"{videoFilter}\" " +
+                                      $"-metadata title=\"{title}\" -metadata author=\"{author}\" -metadata creation_time=\"{creationTimeIso}\" " +
+                                      $"-c:a copy \"{outputPath}\"";
+
+                        RunFFmpeg(ffmpegPath, args);
+
+                        if (!File.Exists(outputPath))
+                        {
+                            uploadResults.Add($"❌ {session.channels[i].ChannelName} — файл не создан.");
+                            continue;
+                        }
+
+                        var yt = await AuthenticateAsync(session.channels[i]);
+                        await UploadVideoAsync(yt, outputPath, title, "");
+
+                        uploadResults.Add($"✔️ {session.channels[i].ChannelName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        uploadResults.Add($"❌ {session.channels[i].ChannelName} — {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (File.Exists(outputPath))
+                        {
+                            File.Delete(outputPath);
+                            Console.WriteLine($"[LOG] Удалён: {outputPath}");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (File.Exists(inputPath))
+                {
+                    File.Delete(inputPath);
+                    Console.WriteLine($"[LOG] Удалён: {inputPath}");
+                }
+            }
+
+            await bot.SendMessage(message.Chat.Id, "📊 Результаты:\n" + string.Join("\n", uploadResults));
         }
+
         private static void RunFFmpeg(string ffmpegPath, string args)
         {
             var psi = new ProcessStartInfo
